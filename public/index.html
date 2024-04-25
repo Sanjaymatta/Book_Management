@@ -1,123 +1,130 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Management System</title>
-</head>
-<body>
-    <h1>Welcome to the Book Management System</h1>
-
-    <h2>Add a New Book</h2>
-    <form id="add-book-form">
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" required><br>
-
-        <label for="author">Author:</label>
-        <input type="text" id="author" name="author" required><br>
-
-        <label for="genre">Genre:</label>
-        <input type="text" id="genre" name="genre"><br>
-
-        <button type="submit">Add Book</button>
-    </form>
-
-    <h2>List of Books</h2>
-    <ul id="book-list"></ul>
-
-    <h2>Add a New Student</h2>
-    <form id="add-student-form">
-        <label for="student">Name:</label>
-        <input type="text" id="student" name="student" required><br>
-
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br>
-
-        <label for="regNo">Registration Number:</label>
-        <input type="number" id="regNo" name="regNo" required><br> <!-- New field for registration number -->
-
-        <button type="submit">Add Student</button>
-    </form>
-
-    <h2>List of Students</h2>
-    <ul id="student-list"></ul>
-
-    <h2>Return a Book</h2>
-    <form id="return-book-form">
-        <label for="student-select">Select Student:</label>
-        <select id="student-select" name="student-select"></select><br>
-
-        <label for="book-select">Select Book:</label>
-        <select id="book-select" name="book-select"></select><br>
-
-        <button type="submit">Return Book</button>
-    </form>
-
-    <script>
-        async function fetchBooks() {
-            const response = await fetch('/api/books');
-            const books = await response.json();
-
-            const bookList = document.getElementById('book-list');
-            bookList.innerHTML = '';
-
-            books.forEach(book => {
-                const li = document.createElement('li');
-                li.textContent = `Title: ${book.title}, Author: ${book.author}, Genre: ${book.genre}, Available: ${book.available ? 'Yes' : 'No'}`;
-
-                const assignButton = document.createElement('button');
-                assignButton.textContent = 'Assign';
-                assignButton.addEventListener('click', () => assignBookToStudent(book._id));
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => deleteBook(book._id));
-
-                li.appendChild(assignButton);
-                li.appendChild(deleteButton);
-                bookList.appendChild(li);
-            });
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .navbar-custom {
+            background-color: #343a40; /* Dark background color */
         }
 
-        async function fetchStudents() {
-    try {
-        const response = await fetch('/api/books/students/borrow');
-        const students = await response.json();
+        .navbar-custom .navbar-brand {
+            margin-right: auto; /* Align to the middle */
+            color: #ffffff; /* White text color */
+        }
 
-        const studentList = document.getElementById('student-list');
-        studentList.innerHTML = '';
+        .navbar-custom .navbar-nav {
+            margin-left: auto; /* Align to the right */
+        }
 
-        students.forEach(student => {
-            const li = document.createElement('li');
-            li.textContent = `Name: ${student.name}, Email: ${student.email}, Reg No: ${student.regNo}`;
+        .navbar-custom .navbar-nav .nav-link {
+            color: #ffffff; /* White text color */
+        }
 
-            studentList.appendChild(li);
+        .navbar-custom .navbar-toggler-icon {
+            background-color: #7f0d0d; /* White color for the toggler icon */
+        }
 
-            // Populate the student select dropdown for returning books
-            const studentOption = document.createElement('option');
-            studentOption.textContent = student.name;
-            studentOption.value = student.regNo;
-            document.getElementById('student-select').appendChild(studentOption);
+        .navbar-custom .navbar-toggler {
+            border-color: #ffffff; /* White border color for the toggler button */
+        }
 
-            // If the current student has borrowed books, fetch and populate the book dropdown
-            if (student.borrowedBooks.length > 0) {
-                const bookDropdown = document.getElementById('book-select');
-                student.borrowedBooks.forEach(book => {
-                    const bookOption = document.createElement('option');
-                    bookOption.textContent = `${book.title} by ${book.author}`;
-                    bookOption.value = book._id;
-                    bookDropdown.appendChild(bookOption);
-                });
-            }
-        });
-    } catch (error) {
-        console.error('Error:', error.message);
-        // Handle error: Display an error message to the user
-    }
-}
+        .navbar-custom .navbar-toggler:focus,
+        .navbar-custom .navbar-toggler:active {
+            outline: none; /* Remove outline on focus/active state */
+        }
 
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+    
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" style="color: aqua;font-weight: bolder; font-size:x-large ;">Book Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                       <Button class="btn btn-primary m-2"><a class="nav-link" href="./books.html">Assign Books</a></Button> 
+                    </li>
+                    <li class="nav-item">
+                      <Button class="btn btn-primary m-2"> <a class="nav-link" href="./students.html">Students</a></Button>  
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Add a New Book</h2>
+                <form id="add-book-form">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title:</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
 
+                    <div class="mb-3">
+                        <label for="author" class="form-label">Author:</label>
+                        <input type="text" class="form-control" id="author" name="author" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="genre" class="form-label">Genre:</label>
+                        <input type="text" class="form-control" id="genre" name="genre">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Add Book
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>Add a New Student</h2>
+                <form id="add-student-form">
+                    <div class="mb-3">
+                        <label for="student" class="form-label">Name:</label>
+                        <input type="text" class="form-control" id="student" name="student" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="regNo" class="form-label">Registration Number:</label>
+                        <input type="number" class="form-control" id="regNo" name="regNo" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Add Student
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <script>
         async function addBook(title, author, genre) {
             try {
                 const response = await fetch('/api/books', {
@@ -128,49 +135,13 @@
                     body: JSON.stringify({ title, author, genre })
                 });
                 if (response.ok) {
-                    fetchBooks();
+                    showSuccessMessage('Book added successfully!');
                 } else {
-                    throw new Error('Failed to add book');
+                    const error = await response.json();
+                    showErrorMessage(`Failed to add book: ${error.message}`);
                 }
             } catch (error) {
-                console.error('Error:', error.message);
-            }
-        }
-
-        async function deleteBook(id) {
-            try {
-                const response = await fetch(`/api/books/${id}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    fetchBooks();
-                } else {
-                    throw new Error('Failed to delete book');
-                }
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
-        }
-
-        async function assignBookToStudent(bookId) {
-            const regNo = prompt('Enter student registration number:'); // Prompt the user to enter the student's registration number
-            if (!regNo) return;
-
-            try {
-                const response = await fetch(`/api/books/${bookId}/borrow`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ regNo }) // Send the entered registration number in the request body
-                });
-                if (response.ok) {
-                    fetchBooks();
-                } else {
-                    throw new Error('Failed to assign book to student');
-                }
-            } catch (error) {
-                console.error('Error:', error.message);
+                showErrorMessage(`Error: ${error.message}`);
             }
         }
 
@@ -184,32 +155,22 @@
                     body: JSON.stringify({ name, email, regNo })
                 });
                 if (response.ok) {
-                    fetchStudents();
+                    showSuccessMessage('Student added successfully!');
                 } else {
-                    throw new Error('Failed to add student');
+                    const error = await response.json();
+                    showErrorMessage(`Failed to add student: ${error.message}`);
                 }
             } catch (error) {
-                console.error('Error:', error.message);
+                showErrorMessage(`Error: ${error.message}`);
             }
         }
 
-        async function returnBook(regNo, bookId) {
-            try {
-                const response = await fetch(`/api/books/${bookId}/return`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ regNo }) // Send the student's registration number in the request body
-                });
-                if (response.ok) {
-                    fetchBooks();
-                } else {
-                    throw new Error('Failed to return book');
-                }
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
+        function showSuccessMessage(message) {
+            alert(message);
+        }
+
+        function showErrorMessage(message) {
+            alert(message);
         }
 
         document.getElementById('add-book-form').addEventListener('submit', async (event) => {
@@ -218,8 +179,19 @@
             const title = form['title'].value;
             const author = form['author'].value;
             const genre = form['genre'].value;
-            addBook(title, author, genre);
-            form.reset();
+
+            if (title && author) {
+                await addBook(title, author, genre);
+                form.reset();
+            } else {
+                form.querySelectorAll('input.form-control').forEach(input => {
+                    if (!input.value) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            }
         });
 
         document.getElementById('add-student-form').addEventListener('submit', async (event) => {
@@ -228,22 +200,60 @@
             const name = form['student'].value;
             const email = form['email'].value;
             const regNo = form['regNo'].value;
-            addStudent(name, email, regNo);
-            form.reset();
+
+            if (name && email && regNo) {
+                await addStudent(name, email, regNo);
+                form.reset();
+            } else {
+                form.querySelectorAll('input.form-control').forEach(input => {
+                    if (!input.value) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            }
         });
 
-        document.getElementById('return-book-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const regNo = form['student-select'].value;
-            console.log(regNo);
-            const bookId = form['book-select'].value;
-            returnBook(regNo, bookId);
-            form.reset();
-        });
+        async function sendBorrowEmail(studentEmail, bookTitle) {
+            try {
+                const response = await fetch('/api/books/send-email/borrow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ studentEmail, bookTitle })
+                });
+                if (response.ok) {
+                    console.log('Email sent successfully');
+                } else {
+                    const error = await response.json();
+                    showErrorMessage(`Failed to send email: ${error.message}`);
+                }
+            } catch (error) {
+                showErrorMessage(`Error: ${error.message}`);
+            }
+        }
 
-        fetchBooks(); // Initial fetch to load books
-        fetchStudents(); // Initial fetch to load students
+        async function sendReturnEmail(studentEmail, bookTitle) {
+            try {
+                const response = await fetch('/api/books/send-email/return', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ studentEmail, bookTitle })
+                });
+                if (response.ok) {
+                    console.log('Email sent successfully');
+                } else {
+                    const error = await response.json();
+                    showErrorMessage(`Failed to send email: ${error.message}`);
+                }
+            } catch (error) {
+                showErrorMessage(`Error: ${error.message}`);
+            }
+        }
     </script>
 </body>
 </html>

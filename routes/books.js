@@ -3,6 +3,96 @@ const express = require('express');
 const router = express.Router();
 const Book = require('../models/book');
 const Student = require('../models/student');
+// const 
+
+// API endpoint to send email when a student borrows a book
+router.post('/send-email/borrow', async (req, res) => {
+    const { studentEmail, bookTitle } = req.body;
+
+    const url = 'https://mail-sender-api1.p.rapidapi.com/';
+    const options = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'X-RapidAPI-Key': 'f090e24ffemsh19f66c47abcec11p1a52f2jsn3af610b9aec6',
+        'X-RapidAPI-Host': 'mail-sender-api1.p.rapidapi.com'
+      },
+      body: {
+        sendto: 'sanjaymatta36@gmail.com',
+        name: 'Matta',
+        replyTo: 'mattasanjay3010@gmail.com',
+        ishtml: 'false',
+        title: 'Book Borrowed',
+        body: `You have borrowed the book "${bookTitle}".`
+      }
+    };
+    
+    try {
+        const response = await fetch(url, options);
+        const result = await response.text();
+        console.log(result);
+    } catch (error) {
+        console.error(error);
+    }
+
+
+//     const url = 'https://mail-sender-api1.p.rapidapi.com/';
+//     const options = {
+//         method: 'POST',
+//         headers: {
+//             'content-type': 'application/json',
+//             'X-RapidAPI-Key': 'f090e24ffemsh19f66c47abcec11p1a52f2jsn3af610b9aec6',
+//             'X-RapidAPI-Host': 'mail-sender-api1.p.rapidapi.com'
+//         },
+//         body: JSON.stringify({
+//             sendto: studentEmail,
+//             title: 'Book Borrowed',
+//             body: `You have borrowed the book "${bookTitle}".`
+//         })
+//     };
+
+//     try {
+//         const response = await fetch(url, options);
+//         const result = await response.text();
+//         console.log(result);
+//         res.status(200).send('Email sent successfully');
+//     } catch (error) {
+//         console.error('Error sending email:', error);
+//         res.status(500).send('Failed to send email');
+//     }
+//
+ });
+
+
+// API endpoint to send email when a student returns a book
+router.post('/send-email/return', async (req, res) => {
+    const { studentEmail, bookTitle } = req.body;
+
+    const url = 'https://mail-sender-api1.p.rapidapi.com/';
+    const options = {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'X-RapidAPI-Key': 'f090e24ffemsh19f66c47abcec11p1a52f2jsn3af610b9aec6',
+            'X-RapidAPI-Host': 'mail-sender-api1.p.rapidapi.com'
+        },
+        body: JSON.stringify({
+            sendto: studentEmail,
+            title: 'Book Returned',
+            body: `You have returned the book "${bookTitle}".`
+        })
+    };
+
+    try {
+        const response = await fetch(url, options);
+        const result = await response.text();
+        console.log(result);
+        res.status(200).send('Email sent successfully');
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).send('Failed to send email');
+    }
+});
 // Get all books
 router.get('/', async (req, res) => {
     try {
@@ -39,7 +129,7 @@ router.post('/', async (req, res) => {
         genre: req.body.genre,
         available: req.body.available || true
     });
-
+    console.log("This is called"+book);
     try {
         const newBook = await book.save();
         res.status(201).json(newBook);
@@ -65,7 +155,7 @@ router.post('/students', async (req, res) => {
     }
 });
 // Update a book
-router.patch('/:id', getBook, async (req, res) => {
+router.put('/:id', getBook, async (req, res) => {
     if (req.body.title != null) {
         res.book.title = req.body.title;
     }
@@ -89,9 +179,15 @@ router.patch('/:id', getBook, async (req, res) => {
 
 // Delete a book
 router.delete('/:id', getBook, async (req, res) => {
+    
+    
     try {
+        const book = res.book;
+        if(book.available){
         await res.book.deleteOne();
         res.json({ message: 'Book deleted' });
+        }
+        else res.status(400).json({message:"This book is not returned"});
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -120,9 +216,11 @@ router.post('/:id/borrow', async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
         if (!book) {
+           
             return res.status(404).json({ message: 'Book not found' });
         }
         if (!book.available) {
+            console.log("book not avalible");
             return res.status(400).json({ message: 'Book not available for borrowing' });
         }
         const regNo = parseInt(req.body.regNo); // Extract registration number from request body
